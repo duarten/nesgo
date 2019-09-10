@@ -96,3 +96,24 @@ func (mem *cpuMemory) Write(addr Address, value byte) {
 		log.Fatalf("CPU memory write out-of-bounds at %s", addr)
 	}
 }
+
+// CPU contains the state to emulate the CPU unit
+type CPU struct {
+	Registers
+	Flags
+	cpuMemory
+}
+
+// NewCPU returns a new CPU instance
+func NewCPU(rom PRG) *CPU {
+	cpu := CPU{cpuMemory: cpuMemory{rom, make([]byte, 2048)}}
+	return &cpu
+}
+
+func (cpu *CPU) step() error {
+	opcode := cpu.Read(cpu.PC)
+	cpu.PC++
+	inst := Instructions[opcode]
+	inst.Run(&cpu.cpuMemory, &cpu.Flags, &cpu.Registers)
+	return nil
+}
